@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# First Time Setup for this Virtual Machine
+#
+# Cy Rossignol <cy@rossignols.me>
+#
+
+if [ -f ~/.kickboxer/guest/data/initial_setup_complete ]
+then
+    exit
+fi
+
+source ~/.kickboxer/guest/scripts/functions
+
+echo ""
+vm_instructions "It looks like you're starting this virtual machine for the"
+vm_instructions "first time."
+echo ""
+vm_instructions "Let's set up some basic options..."
+
+vm_config_git
+vm_enable_services
+vm_generate_ssh_identity
+sleep 1
+vm_add_ssh_identity
+
+echo ""
+vm_success "Done setting up the virtual machine."
+echo ""
+vm_fail "REMEMBER: this virtual machine has not been thoroughly"
+vm_fail "secured. Do not use for a production environment!"
+echo ""
+
+touch ~/.kickboxer/guest/data/initial_setup_complete

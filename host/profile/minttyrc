@@ -1,0 +1,13 @@
+BoldAsFont=yes
+Font=Meslo LG L
+FontHeight=9
+FontSmoothing=full
+BoldAsColour=no
+FontIsBold=yes
+Transparency=low
+CursorType=block
+Locale=en_US
+Charset=UTF-8
+Scrollbar=none
+BackgroundColour=6,6,6
+CursorBlinks=no

@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+# Functions for managing VirtualBox machines
+#
+# Cy Rossignol <cy@rossignols.me>
+#
+
+VM_HOST_APP="virtualbox"
+VM_MANAGER="vboxmanage"
+
+VM_STATE_OFF='powered off'
+VM_STATE_ON='running'
+VM_STATE_SAVED='saved'
+VM_STATE_PAUSED='paused'
+
+VM_APP_DOWNLOAD_URL_PATH="http://download.virtualbox.org/virtualbox/5.0.6/"
+VM_APP_FILENAME_WIN="VirtualBox-5.0.6-103037-Win.exe"
+VM_APP_FILENAME_OSX="VirtualBox-5.0.6-103037-OSX.dmg"
+VM_APP_FILENAME_LIN="VirtualBox-5.0.6-103037-Linux_amd64.run"
+
+# Check to see if VirtualBox is installed
+vm_host_exists() {
+    command -v "$VM_HOST_APP" >/dev/null 2>&1 || { return 1; }
+}
+
+vm_manager_exists() {
+    command -v "$VM_MANAGER" >/dev/null 2>&1 || { return 1; }
+}
+
+# Show a list of all VMs available on this platform
+vm_manage_list_all() {
+    vm_num=1
+    while read vm
+    do
+        vm="$(vm_vbox_format_vm_item "$vm")"
+        echo "${vm_num}: ${vm}"
+
+        vm_num=$[vm_num + 1]
+    done < <("$VM_MANAGER" list vms)
+}
+
+# Show a list of running VMs on this platform
+vm_manage_list_running() {
+    while read vm
+    do
+        vm="$(vm_vbox_format_vm_item "$vm")"
+        echo "${vm}"
+    done < <("$VM_MANAGER" list runningvms)
+}
+
+# Show information about a particular virtual machine
+vm_manage_show_info() {
+    "$VM_MANAGER" showvminfo "$1"
+}
+
+# Get the status of a particular virtual machine
+vm_manage_show_status() {
+    vm_manage_show_info "$1" | grep "State:" \
+        | awk -F':' '{ print $2 }' \
+        | awk -F'(' '{ print $1 }' \
+        | awk '{$1=$1}1' # remove whitespace
+}
+
+# Power on the virtual machine
+vm_manage_start() {
+    "$VM_MANAGER" startvm "$1" --type headless
+}
+
+vm_manage_start_gui() {
+    "$VM_MANAGER" startvm "$1" --type separate
+}
+
+# Pause the execution of the virtual machine
+vm_manage_pause() {
+    "$VM_MANAGER" controlvm "$1" pause
+}
+
+# Unpause the execution of the virtual machine
+vm_manage_resume() {
+    "$VM_MANAGER" controlvm "$1" resume
+}
+
+# Send the shutdown signal to the virtual machine
+vm_manage_shutdown() {
+    "$VM_MANAGER" controlvm "$1" acpipowerbutton
+}
+
+# Pull the power plug on the virtual machine
+vm_manage_stop() {
+    "$VM_MANAGER" controlvm "$1" poweroff
+}
+
+# Perform a hard reset on the virtual machine
+vm_manage_reset() {
+    "$VM_MANAGER" controlvm "$1" reset
+}
+
+# Save the execution state of the virtual machine and power off
+vm_manage_save() {
+    "$VM_MANAGER" controlvm "$1" savestate
+}
+
+# Load the previously saved state of the VM and power on
+vm_manage_load() {
+    vm_manage_start "$1"
+}
+
+# Format a VM name
+vm_vbox_format_vm_item()
+{
+    vm="$1"
+
+    # Remove VirtualBox identifier hash
+    vm="$( cut -d ' ' -f 1 <<< "$vm" )"
+
+    # Remove quotes from VM name
+    vm="${vm%\"}"
+    vm="${vm#\"}"
+
+    echo "$vm"
+}

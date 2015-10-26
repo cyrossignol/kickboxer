@@ -1,0 +1,4 @@
+/host/data/*
+!/host/data/.gitkeep
+/guest/data/*
+!/guest/data/.gitkeep

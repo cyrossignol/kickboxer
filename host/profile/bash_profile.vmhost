@@ -1,0 +1,40 @@
+#
+# Bash profile configuration for the Kickboxer VM Console on Windows
+#
+# Cy Rossignol <cy@rossignols.me>
+#
+
+# Check to see if running under Cygwin on Windows
+if [[ ! -z ${CYGDIR+x} ]]; then
+    KICKBOXER="$(/bin/cygpath "$KICKBOXER")"
+fi
+
+source "$KICKBOXER/host/scripts/welcome.sh"
+
+PS1="\n\[\033[0;036m\]"\
+"Virtual Machine Management Console (type \"help\" for menu)"\
+"\n\[\033[0m\]> "
+
+alias kick="$KICKBOXER/host/scripts/vm_cli.sh"
+alias help="kick help"
+alias list="kick list"
+alias running="kick running"
+
+alias status="kick status"
+alias info="kick info"
+
+alias start="kick start"
+alias pause="kick pause"
+alias save="kick save"
+alias shutdown="kick shutdown"
+alias reboot="kick reboot"
+alias stop="kick stop"
+alias reset="kick reset"
+
+alias connect="kick connect"
+alias show="kick show"
+
+alias reconfigure="kick reconfigure"
+
+alias save="kick save"
+alias load="kick load"

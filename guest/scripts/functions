@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+# Functions for configuring this virtual machine guest
+#
+# Cy Rossignol <cy@rossignols.me>
+#
+
+vm_services=( nginx httpd hhvm mysqld memcached mongod redis )
+
+# if not running under Cygwin
+if [[ -z ${CYGDIR+x} ]]; then
+    source "$KICKBOXER/shared/scripts/functions"
+else
+    source "$(cygpath $KICKBOXER)/shared/scripts/functions"
+fi
+
+vm_config_git() {
+    echo ""
+    vm_instructions "Tell git who you are. This is your identity when you"
+    vm_instructions "contribute to any projects."
+
+    echo ""
+    echo -n "Name: "
+    read vm_name
+    echo -n "E-mail: "
+    read vm_email
+
+    echo ""
+    vm_prompt "$vm_name <$vm_email>"
+    echo ""
+    vm_prompt "Is this correct? [Y/n]: "
+
+    read vm_answer
+    if [[ $vm_answer == "Y" || $vm_answer == "y" || $vm_answer == "" ]]; then
+        git config --global user.name "$vm_name"
+        git config --global user.email "$vm_email"
+
+        echo ""
+        vm_success "Saving git configuration..."
+    else
+        vm_config_git
+    fi
+}
+
+vm_generate_ssh_identity() {
+    echo ""
+    vm_instructions "Let's create a new SSH identity."
+    echo ""
+    vm_instructions "This virtual machine caches SSH key passwords using"
+    vm_instructions "ssh-agent. You will be required to enter your password"
+    vm_instructions "once per session."
+    echo ""
+    vm_instructions "Please select a password for this identity:"
+    echo ""
+
+    vm_try_ssh_keygen
+
+    echo ""
+    vm_success "Saving keys to ~/.ssh/id_rsa ..."
+
+    echo ""
+    vm_instructions "Here's your new SSH public key:"
+    echo ""
+
+    vm_highlight "$(cat ~/.ssh/id_rsa.pub)"
+
+    echo ""
+    vm_instructions "You may install this key for services such as GitLab,"
+    vm_instructions "GitHub, etc, or install it on another machine for"
+    vm_instructions "passwordless authentication."
+}
+
+vm_try_ssh_keygen() {
+    rm ~/.ssh/id_rsa ~/.ssh/id_rsa.pub 2> /dev/null
+
+    /usr/bin/ssh-keygen -q -t rsa -f ~/.ssh/id_rsa
+
+    if [ ! -f ~/.ssh/id_rsa.pub ]; then
+        echo ""
+        vm_fail "Whoops--let's try again..."
+        echo ""
+
+        vm_try_ssh_keygen
+    fi
+}
+
+vm_add_ssh_identity() {
+    echo ""
+    vm_instructions "Adding the identity you just created to the ssh-agent"
+    vm_instructions "session..."
+    vm_instructions "You will need to enter your password one more time:"
+    echo ""
+
+    ssh-add
+}
+
+vm_enable_services() {
+    echo ""
+    vm_instructions "Choose which services you would like to start when the"
+    vm_instructions "virtual machine boots. If you do not need a particular"
+    vm_instructions "service now, choose 'no'. You can enable these later."
+
+    for vm_service in "${vm_services[@]}"
+    do
+        echo ""
+        vm_prompt "Start ${vm_service} at boot? [Y/n] "
+
+        read vm_answer
+        if [[ $vm_answer == "Y" || $vm_answer == "y" || $vm_answer == "" ]]; then
+            echo ""
+            vm_success "Starting ${vm_service}..."
+            sudo systemctl enable "${vm_service}"
+            sudo systemctl start "${vm_service}"
+        else
+            sudo systemctl disable "${vm_service}"
+        fi
+    done
+
+    echo ""
+    vm_success "Done enabling services."
+}

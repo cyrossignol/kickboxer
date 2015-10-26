@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# Functions shared by host and guest Virtual Machine management
+#
+# Cy Rossignol <cy@rossignols.me>
+#
+
+VM_WINDOWS_OS="Windows"
+VM_OSX_OS="OSX"
+VM_LINUX_OS="Linux"
+VM_UNKNOWN_OS="Unknown"
+
+vm_cyan='\033[036m'
+vm_yellow='\033[033m'
+vm_green='\033[032m'
+vm_red='\033[031m'
+vm_purple='\033[035m'
+vm_color_off='\033[0m'
+
+vm_instructions() {
+    printf "${vm_cyan}"
+    echo "$1"
+    printf "${vm_color_off}"
+}
+
+vm_prompt() {
+    printf "${vm_yellow}"
+    echo -n "$1"
+    printf "${vm_color_off}"
+}
+
+vm_success() {
+    printf "${vm_green}"
+    echo "$1"
+    printf "${vm_color_off}"
+    sleep 1
+}
+
+vm_fail() {
+    printf "${vm_red}"
+    echo "$1"
+    printf "${vm_color_off}"
+    sleep 1
+}
+
+vm_highlight() {
+    printf "${vm_purple}"
+    echo "$1"
+    printf "${vm_color_off}"
+}
+
+vm_path() {
+    if [[ $1 == "" ]]; then
+        echo $(vm_get_path $KICKBOXER)
+    else
+        echo $(vm_get_path $1)
+    fi
+}
+
+vm_get_path() {
+    # if not running under Cygwin
+    if [[ -z ${CYGDIR+x} ]]; then
+        echo $1
+    else
+        echo $(cygpath $1)
+    fi
+}
+
+vm_get_current_os() {
+    if [ "$(uname)" == "Darwin" ]; then
+        echo $VM_OSX_OS
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo $VM_LINUX_OS
+    elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
+        echo $VM_WINDOWS_OS
+    elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+        echo $VM_WINDOWS_OS
+    else
+        echo $VM_UNKNOWN_OS
+    fi
+}
