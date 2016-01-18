@@ -7,7 +7,7 @@
 
 if [ -f ~/.kickboxer/guest/data/initial_setup_complete ]
 then
-    exit
+    return
 fi
 
 source ~/.kickboxer/guest/scripts/functions
