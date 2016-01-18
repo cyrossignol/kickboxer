@@ -15,7 +15,7 @@ CD %CYGDIR%
 --root %CYGDIR% ^
 --local-package-dir %CYGDIR%\packages ^
 --categories Base ^
---packages openssh >nul
+--packages git openssh >nul
 
 IF %ERRORLEVEL% EQU 0 EXIT /B %CYGWIN_INSTALLED%
 EXIT /B %CYGWIN_NOT_INSTALLED%
